@@ -1,0 +1,11 @@
+.DS_Store
+build/*
+Pods/*
+*.xcuserdatad
+*.xcworkspace
+
+UserInterfaceState.xcuserstate
+*.pbxuser
+*.perspectivev3
+*.mode1v3
+xcuserdata/
