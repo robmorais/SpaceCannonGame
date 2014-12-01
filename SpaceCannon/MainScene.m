@@ -8,7 +8,15 @@
 
 #import "MainScene.h"
 
-static const CGFloat SHOOT_SPEED = 1000.0f;
+static const CGFloat SHOOT_SPEED = 1000.0;
+static const CGFloat kSCHaloLowAngle = 200.0 * M_PI/180.0;
+static const CGFloat kSCHaloHighAngle = 340.0 * M_PI/180.0;
+static const CGFloat kSCHaloSpeed = 100.0;
+
+// Colision Bitmaks
+static const uint32_t kSCHaloCategory = 0x1 << 0;
+static const uint32_t kSCBallCategory = 0x1 << 1;
+static const uint32_t kSCEdgeCategory = 0x1 << 2;
 
 @implementation MainScene
 {
@@ -26,8 +34,9 @@ static inline CGVector radiansToVector(CGFloat radians)
     return vector;
 }
 
-static inline CGFloat randomInRange(CGFloat min, CGFloat max) {
-    return 0.0;
+static inline CGFloat randomInRange(CGFloat low, CGFloat high) {
+    CGFloat randomValue = arc4random_uniform(UINT32_MAX)/(CGFloat)UINT32_MAX;
+    return low + (high -low) * randomValue ;
 }
 
 -(id)initWithSize:(CGSize)size {
@@ -35,7 +44,7 @@ static inline CGFloat randomInRange(CGFloat min, CGFloat max) {
         
         // Turn off gravity
         self.physicsWorld.gravity = CGVectorMake(0.0, 0.0);
-        
+        self.physicsWorld.contactDelegate = self;
         // Add BG
         SKSpriteNode *background = [SKSpriteNode spriteNodeWithImageNamed:@"Starfield"];
         background.position = CGPointZero;
@@ -47,11 +56,13 @@ static inline CGFloat randomInRange(CGFloat min, CGFloat max) {
         SKNode *leftEdge = [SKNode node];
         leftEdge.physicsBody = [SKPhysicsBody bodyWithEdgeFromPoint:CGPointZero toPoint:CGPointMake(0.0, self.size.height)];
         leftEdge.position = CGPointZero;
+        leftEdge.physicsBody.categoryBitMask = kSCEdgeCategory;
         [self addChild:leftEdge];
         
         SKNode *rightEdge = [SKNode node];
         rightEdge.physicsBody = [SKPhysicsBody bodyWithEdgeFromPoint:CGPointZero toPoint:CGPointMake(0.0, self.size.height)];
         rightEdge.position = CGPointMake(self.size.width, 0);
+        rightEdge.physicsBody.categoryBitMask = kSCEdgeCategory;
         [self addChild:rightEdge];
         
         // Add Main Layer
@@ -67,6 +78,11 @@ static inline CGFloat randomInRange(CGFloat min, CGFloat max) {
                                                             [SKAction rotateByAngle:-M_PI duration:2]]];
                                         
         [_cannon runAction:[SKAction repeatActionForever:rotateCannonAction]];
+        
+        SKAction *spawnHalo = [SKAction sequence:@[[SKAction waitForDuration:2 withRange:1],
+                                                   [SKAction performSelector:@selector(spawnHalo) onTarget:self]]];
+        
+        [self runAction:[SKAction repeatActionForever:spawnHalo]];
         
     }
     return self;
@@ -84,10 +100,31 @@ static inline CGFloat randomInRange(CGFloat min, CGFloat max) {
     [_mainLayer addChild:ball];
     
     ball.physicsBody = [SKPhysicsBody bodyWithCircleOfRadius:6.0];
+    ball.physicsBody.categoryBitMask = kSCBallCategory;
+    ball.physicsBody.collisionBitMask = kSCEdgeCategory;
     ball.physicsBody.velocity = CGVectorMake(rotationVector.dx * SHOOT_SPEED, rotationVector.dy * SHOOT_SPEED);
     ball.physicsBody.restitution = 1.0;
     ball.physicsBody.linearDamping = 0.0;
     ball.physicsBody.friction = 0.0;
+}
+
+- (void)spawnHalo
+{
+    SKSpriteNode *halo = [SKSpriteNode spriteNodeWithImageNamed:@"Halo"];
+    halo.position = CGPointMake(randomInRange(halo.size.width * 0.5, self.size.width - (halo.size.width * 0.5)), self.size.height + (halo.size.height * 0.5));
+    halo.physicsBody = [SKPhysicsBody bodyWithCircleOfRadius:16.0];
+    halo.physicsBody.restitution = 1.0;
+    halo.physicsBody.linearDamping = 0.0;
+    halo.physicsBody.friction = 0.0;
+    
+    CGVector direction = radiansToVector(randomInRange(kSCHaloLowAngle, kSCHaloHighAngle));
+    halo.physicsBody.velocity = CGVectorMake(direction.dx * kSCHaloSpeed, direction.dy * kSCHaloSpeed);
+    halo.physicsBody.categoryBitMask = kSCHaloCategory;
+    halo.physicsBody.collisionBitMask = kSCEdgeCategory;
+    halo.physicsBody.contactTestBitMask = kSCBallCategory;
+    
+    [_mainLayer addChild:halo];
+    
 }
 
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
@@ -96,6 +133,19 @@ static inline CGFloat randomInRange(CGFloat min, CGFloat max) {
          _shoot = YES;
     }
 }
+
+#pragma mark SKPhysicsContactDelegate
+
+- (void)didBeginContact:(SKPhysicsContact *)contact
+{
+    if ((contact.bodyA.categoryBitMask == kSCHaloCategory && contact.bodyB.categoryBitMask == kSCBallCategory) ||
+        (contact.bodyB.categoryBitMask == kSCHaloCategory && contact.bodyA.categoryBitMask == kSCBallCategory)) {
+        [contact.bodyA.node removeFromParent];
+        [contact.bodyB.node removeFromParent];
+    }
+}
+
+#pragma Life Cycle
 
 - (void)didSimulatePhysics
 {
