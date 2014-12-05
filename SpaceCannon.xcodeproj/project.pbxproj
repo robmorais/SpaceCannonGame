@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A52309391A31ED6D009B193D /* BounceExplosion.sks in Resources */ = {isa = PBXBuildFile; fileRef = A52309381A31ED6D009B193D /* BounceExplosion.sks */; };
 		A542D6881A2F97AB0061D08E /* HaloExplosion.sks in Resources */ = {isa = PBXBuildFile; fileRef = A542D6861A2F97AB0061D08E /* HaloExplosion.sks */; };
 		A542D6891A2F97AB0061D08E /* spark.png in Resources */ = {isa = PBXBuildFile; fileRef = A542D6871A2F97AB0061D08E /* spark.png */; };
 		A542D68B1A2FA5540061D08E /* halo.png in Resources */ = {isa = PBXBuildFile; fileRef = A542D68A1A2FA5540061D08E /* halo.png */; };
@@ -32,6 +33,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		A52309381A31ED6D009B193D /* BounceExplosion.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = BounceExplosion.sks; sourceTree = "<group>"; };
 		A542D6861A2F97AB0061D08E /* HaloExplosion.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = HaloExplosion.sks; sourceTree = "<group>"; };
 		A542D6871A2F97AB0061D08E /* spark.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = spark.png; sourceTree = "<group>"; };
 		A542D68A1A2FA5540061D08E /* halo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = halo.png; sourceTree = "<group>"; };
@@ -106,6 +108,7 @@
 				A542D6871A2F97AB0061D08E /* spark.png */,
 				A542D68A1A2FA5540061D08E /* halo.png */,
 				A542D68C1A30703A0061D08E /* LifeBarExplosion.sks */,
+				A52309381A31ED6D009B193D /* BounceExplosion.sks */,
 			);
 			path = SpaceCannon;
 			sourceTree = "<group>";
@@ -223,6 +226,7 @@
 				A5AE5FBA1A238C9100B7FA52 /* Images.xcassets in Resources */,
 				A5AE5FB81A238C9100B7FA52 /* Main.storyboard in Resources */,
 				A542D68B1A2FA5540061D08E /* halo.png in Resources */,
+				A52309391A31ED6D009B193D /* BounceExplosion.sks in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
