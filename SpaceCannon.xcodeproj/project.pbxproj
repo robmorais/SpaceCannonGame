@@ -25,6 +25,7 @@
 		A5C7DA751A38559A00A8FD24 /* Explosion.caf in Resources */ = {isa = PBXBuildFile; fileRef = A5C7DA701A38559A00A8FD24 /* Explosion.caf */; };
 		A5C7DA761A38559A00A8FD24 /* Laser.caf in Resources */ = {isa = PBXBuildFile; fileRef = A5C7DA711A38559A00A8FD24 /* Laser.caf */; };
 		A5C7DA771A38559A00A8FD24 /* Zap.caf in Resources */ = {isa = PBXBuildFile; fileRef = A5C7DA721A38559A00A8FD24 /* Zap.caf */; };
+		A5C7DA7A1A385A7700A8FD24 /* SCMenu.m in Sources */ = {isa = PBXBuildFile; fileRef = A5C7DA791A385A7700A8FD24 /* SCMenu.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -63,6 +64,8 @@
 		A5C7DA701A38559A00A8FD24 /* Explosion.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Explosion.caf; sourceTree = "<group>"; };
 		A5C7DA711A38559A00A8FD24 /* Laser.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Laser.caf; sourceTree = "<group>"; };
 		A5C7DA721A38559A00A8FD24 /* Zap.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Zap.caf; sourceTree = "<group>"; };
+		A5C7DA781A385A7700A8FD24 /* SCMenu.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SCMenu.h; sourceTree = "<group>"; };
+		A5C7DA791A385A7700A8FD24 /* SCMenu.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SCMenu.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -115,6 +118,8 @@
 				A5AE5FB41A238C9100B7FA52 /* GameViewController.m */,
 				A5AE5FD21A23AB1E00B7FA52 /* MainScene.h */,
 				A5AE5FD31A23AB1E00B7FA52 /* MainScene.m */,
+				A5C7DA781A385A7700A8FD24 /* SCMenu.h */,
+				A5C7DA791A385A7700A8FD24 /* SCMenu.m */,
 			);
 			path = SpaceCannon;
 			sourceTree = "<group>";
@@ -282,6 +287,7 @@
 			files = (
 				A5AE5FB01A238C9100B7FA52 /* AppDelegate.m in Sources */,
 				A5AE5FD41A23AB1E00B7FA52 /* MainScene.m in Sources */,
+				A5C7DA7A1A385A7700A8FD24 /* SCMenu.m in Sources */,
 				A5AE5FB51A238C9100B7FA52 /* GameViewController.m in Sources */,
 				A5AE5FAD1A238C9100B7FA52 /* main.m in Sources */,
 			);

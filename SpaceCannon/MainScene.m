@@ -7,6 +7,7 @@
 //
 
 #import "MainScene.h"
+#import "SCMenu.h"
 
 static const CGFloat SHOOT_SPEED = 1000.0;
 static const CGFloat kSCHaloLowAngle = 200.0 * M_PI/180.0;
@@ -28,6 +29,7 @@ static const uint32_t kSCLifeBarCategory = 0x1 << 4;
 @implementation MainScene
 {
     SKNode *_mainLayer;
+    SCMenu *_menu;
     SKSpriteNode *_cannon;
     SKSpriteNode *_ammoDisplay;
     SKLabelNode *_scoreLabel;
@@ -37,6 +39,7 @@ static const uint32_t kSCLifeBarCategory = 0x1 << 4;
     SKAction *_explosionSound;
     SKAction *_laserSound;
     SKAction *_zapSound;
+    BOOL _gameOver;
 }
 
 static inline CGVector radiansToVector(CGFloat radians)
@@ -124,16 +127,37 @@ static inline CGFloat randomInRange(CGFloat low, CGFloat high) {
         // Setup sounds
         [self setupSounds];
         
-        // New Game
-        [self newGame];
+        // Setup Menu
+        _menu = [SCMenu new];
+        _menu.position = CGPointMake(self.size.width * 0.5, self.size.height - 220);
+        
+        [self addChild:_menu];
+        
+        // Init variables
+        _gameOver = YES;
+        self.ammo = 5;
+        self.score = 0;
+        _scoreLabel.hidden = YES;
     }
     return self;
 }
 
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
 {
-    if (touches.count > 0) {
+    if (touches.count > 0 && !_gameOver) {
         _shoot = YES;
+    }
+}
+
+- (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
+{
+    for (UITouch *touch in touches) {
+        if (_gameOver) {
+            SKNode *node = [_menu nodeAtPoint:[touch locationInNode:_menu]];
+            if ([node.name isEqualToString:@"PlayButton"]) {
+                [self newGame];
+            }
+        }
     }
 }
 
@@ -157,6 +181,7 @@ static inline CGFloat randomInRange(CGFloat low, CGFloat high) {
     
     // Starting score
     self.score = 0;
+    _scoreLabel.hidden = NO;
     
     // Setup shield
     for (int i=0; i < 6; i++) {
@@ -177,6 +202,9 @@ static inline CGFloat randomInRange(CGFloat low, CGFloat high) {
     lifeBar.physicsBody.categoryBitMask = kSCLifeBarCategory;
     
     [_mainLayer addChild:lifeBar];
+    
+    _menu.hidden = YES;
+    _gameOver = NO;
 }
 
 - (void)gameOver
@@ -196,7 +224,15 @@ static inline CGFloat randomInRange(CGFloat low, CGFloat high) {
         [node removeFromParent];
     }];
     
-    [self performSelector:@selector(newGame) withObject:nil afterDelay:1.5];
+    _menu.score = self.score;
+    
+    if (_menu.score > _menu.topScore) {
+        _menu.topScore = _menu.score;
+    }
+    
+    _menu.hidden = NO;
+    _scoreLabel.hidden = YES;
+    _gameOver = YES;
 }
 
 - (void)shoot
@@ -284,7 +320,7 @@ static inline CGFloat randomInRange(CGFloat low, CGFloat high) {
         [firstBody.node removeFromParent];
         [secondBody.node removeFromParent];
         
-        self.score += 10;
+        self.score += 1;
     }
     
     if ((firstBody.categoryBitMask == kSCHaloCategory && secondBody.categoryBitMask == kSCShieldCategory)) {
