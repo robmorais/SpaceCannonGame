@@ -32,6 +32,11 @@ static const uint32_t kSCLifeBarCategory = 0x1 << 4;
     SKSpriteNode *_ammoDisplay;
     SKLabelNode *_scoreLabel;
     BOOL _shoot;
+    SKAction *_bounceSound;
+    SKAction *_deepExplosionSound;
+    SKAction *_explosionSound;
+    SKAction *_laserSound;
+    SKAction *_zapSound;
 }
 
 static inline CGVector radiansToVector(CGFloat radians)
@@ -47,6 +52,8 @@ static inline CGFloat randomInRange(CGFloat low, CGFloat high) {
     CGFloat randomValue = arc4random_uniform(UINT32_MAX)/(CGFloat)UINT32_MAX;
     return low + (high -low) * randomValue ;
 }
+
+#pragma mark - Setup and Life Cycle
 
 -(id)initWithSize:(CGSize)size {
     if (self = [super initWithSize:size]) {
@@ -114,11 +121,32 @@ static inline CGFloat randomInRange(CGFloat low, CGFloat high) {
         
         [self addChild:_scoreLabel];
         
+        // Setup sounds
+        [self setupSounds];
+        
         // New Game
         [self newGame];
     }
     return self;
 }
+
+- (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
+{
+    if (touches.count > 0) {
+        _shoot = YES;
+    }
+}
+
+- (void)setupSounds
+{
+    _explosionSound = [SKAction playSoundFileNamed:@"Explosion.caf" waitForCompletion:NO];
+    _deepExplosionSound = [SKAction playSoundFileNamed:@"DeepExplosion.caf" waitForCompletion:NO];
+    _zapSound = [SKAction playSoundFileNamed:@"Zap.caf" waitForCompletion:NO];
+    _bounceSound = [SKAction playSoundFileNamed:@"Bounce.caf" waitForCompletion:NO];
+    _laserSound = [SKAction playSoundFileNamed:@"Laser.caf" waitForCompletion:NO];
+}
+
+#pragma mark - Game Actions
 
 - (void)newGame
 {
@@ -192,6 +220,8 @@ static inline CGFloat randomInRange(CGFloat low, CGFloat high) {
         ball.physicsBody.restitution = 1.0;
         ball.physicsBody.linearDamping = 0.0;
         ball.physicsBody.friction = 0.0;
+        
+        [self runAction:_laserSound];
     }
 }
 
@@ -209,17 +239,10 @@ static inline CGFloat randomInRange(CGFloat low, CGFloat high) {
     halo.physicsBody.velocity = CGVectorMake(direction.dx * kSCHaloSpeed, direction.dy * kSCHaloSpeed);
     halo.physicsBody.categoryBitMask = kSCHaloCategory;
     halo.physicsBody.collisionBitMask = kSCEdgeCategory;
-    halo.physicsBody.contactTestBitMask = kSCBallCategory | kSCShieldCategory | kSCLifeBarCategory;
+    halo.physicsBody.contactTestBitMask = kSCBallCategory | kSCShieldCategory | kSCLifeBarCategory | kSCEdgeCategory;
     
     [_mainLayer addChild:halo];
     
-}
-
-- (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
-{
-    if (touches.count > 0) {
-         _shoot = YES;
-    }
 }
 
 - (void)addExplosion:(CGPoint)position name:(NSString *)name
@@ -257,7 +280,7 @@ static inline CGFloat randomInRange(CGFloat low, CGFloat high) {
     if ((firstBody.categoryBitMask == kSCHaloCategory && secondBody.categoryBitMask == kSCBallCategory)) {
         // Ball hits a Halo
         [self addExplosion:firstBody.node.position name:@"HaloExplosion"];
-        
+        [self runAction:_explosionSound];
         [firstBody.node removeFromParent];
         [secondBody.node removeFromParent];
         
@@ -267,7 +290,7 @@ static inline CGFloat randomInRange(CGFloat low, CGFloat high) {
     if ((firstBody.categoryBitMask == kSCHaloCategory && secondBody.categoryBitMask == kSCShieldCategory)) {
         // Halo hits shield
         [self addExplosion:firstBody.node.position name:@"HaloExplosion"];
-        
+        [self runAction:_explosionSound];
         [firstBody.node removeFromParent];
         [secondBody.node removeFromParent];
     }
@@ -276,13 +299,19 @@ static inline CGFloat randomInRange(CGFloat low, CGFloat high) {
         // Game Over
         [self addExplosion:secondBody.node.position name:@"LifeBarExplosion"];
         [secondBody.node removeFromParent];
-        
+        [self runAction:_deepExplosionSound];
         [self gameOver];
+    }
+    
+    if ((firstBody.categoryBitMask == kSCHaloCategory && secondBody.categoryBitMask == kSCEdgeCategory)) {
+        // Halo bounces
+        [self runAction:_zapSound];
     }
     
     if ((firstBody.categoryBitMask == kSCBallCategory && secondBody.categoryBitMask == kSCEdgeCategory)) {
         // balls bounces on the edges
         [self addExplosion:contact.contactPoint name:@"BounceExplosion"];
+        [self runAction:_bounceSound];
     }
 
 }
