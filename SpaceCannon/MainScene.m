@@ -14,6 +14,8 @@ static const CGFloat kSCHaloLowAngle = 200.0 * M_PI/180.0;
 static const CGFloat kSCHaloHighAngle = 340.0 * M_PI/180.0;
 static const CGFloat kSCHaloSpeed = 100.0;
 
+static NSString *const kSCKeyTopScore = @"TopScoreKey";
+
 // Colision Bitmaks
 static const uint32_t kSCHaloCategory   = 0x1 << 0;
 static const uint32_t kSCBallCategory   = 0x1 << 1;
@@ -40,6 +42,7 @@ static const uint32_t kSCLifeBarCategory = 0x1 << 4;
     SKAction *_laserSound;
     SKAction *_zapSound;
     BOOL _gameOver;
+    NSUserDefaults *_userDefaults;
 }
 
 static inline CGVector radiansToVector(CGFloat radians)
@@ -73,13 +76,13 @@ static inline CGFloat randomInRange(CGFloat low, CGFloat high) {
         
         // Add Edges
         SKNode *leftEdge = [SKNode node];
-        leftEdge.physicsBody = [SKPhysicsBody bodyWithEdgeFromPoint:CGPointZero toPoint:CGPointMake(0.0, self.size.height)];
+        leftEdge.physicsBody = [SKPhysicsBody bodyWithEdgeFromPoint:CGPointZero toPoint:CGPointMake(0.0, self.size.height + 100)];
         leftEdge.position = CGPointZero;
         leftEdge.physicsBody.categoryBitMask = kSCEdgeCategory;
         [self addChild:leftEdge];
         
         SKNode *rightEdge = [SKNode node];
-        rightEdge.physicsBody = [SKPhysicsBody bodyWithEdgeFromPoint:CGPointZero toPoint:CGPointMake(0.0, self.size.height)];
+        rightEdge.physicsBody = [SKPhysicsBody bodyWithEdgeFromPoint:CGPointZero toPoint:CGPointMake(0.0, self.size.height + 100)];
         rightEdge.position = CGPointMake(self.size.width, 0);
         rightEdge.physicsBody.categoryBitMask = kSCEdgeCategory;
         [self addChild:rightEdge];
@@ -138,6 +141,10 @@ static inline CGFloat randomInRange(CGFloat low, CGFloat high) {
         self.ammo = 5;
         self.score = 0;
         _scoreLabel.hidden = YES;
+        
+        // User Defaults
+        _userDefaults = [NSUserDefaults standardUserDefaults];
+        _menu.topScore = [_userDefaults integerForKey:kSCKeyTopScore];
     }
     return self;
 }
@@ -227,7 +234,9 @@ static inline CGFloat randomInRange(CGFloat low, CGFloat high) {
     _menu.score = self.score;
     
     if (_menu.score > _menu.topScore) {
-        _menu.topScore = _menu.score;
+        _menu.topScore = self.score;
+        [_userDefaults setInteger:self.score forKey:kSCKeyTopScore];
+        [_userDefaults synchronize];
     }
     
     _menu.hidden = NO;
@@ -321,6 +330,9 @@ static inline CGFloat randomInRange(CGFloat low, CGFloat high) {
         [secondBody.node removeFromParent];
         
         self.score += 1;
+        
+        // Disable ball so it only hits once
+        secondBody.categoryBitMask = 0;
     }
     
     if ((firstBody.categoryBitMask == kSCHaloCategory && secondBody.categoryBitMask == kSCShieldCategory)) {
@@ -329,6 +341,9 @@ static inline CGFloat randomInRange(CGFloat low, CGFloat high) {
         [self runAction:_explosionSound];
         [firstBody.node removeFromParent];
         [secondBody.node removeFromParent];
+        
+        // Disable halo so it only hits once
+        firstBody.categoryBitMask = 0;
     }
     
     if ((firstBody.categoryBitMask == kSCHaloCategory && secondBody.categoryBitMask == kSCLifeBarCategory)) {
@@ -374,6 +389,12 @@ static inline CGFloat randomInRange(CGFloat low, CGFloat high) {
 {
     [_mainLayer enumerateChildNodesWithName:@"ball" usingBlock:^(SKNode *node, BOOL *stop) {
         if (!CGRectContainsPoint(self.frame, node.position)) {
+            [node removeFromParent];
+        }
+    }];
+    
+    [_mainLayer enumerateChildNodesWithName:@"halo" usingBlock:^(SKNode *node, BOOL *stop) {
+        if (node.position.y + node.frame.size.height < 0) {
             [node removeFromParent];
         }
     }];
