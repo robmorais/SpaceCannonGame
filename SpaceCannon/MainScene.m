@@ -320,6 +320,9 @@ static inline CGFloat randomInRange(CGFloat low, CGFloat high) {
     if (!_gameOver && arc4random_uniform(6) == 0) {
         halo.texture = [SKTexture textureWithImageNamed:@"HaloX"];
         halo.userData = [NSMutableDictionary dictionaryWithDictionary:@{@"Multiplier":@YES}];
+    } else if (!_gameOver && arc4random_uniform(8) == 0) {
+        halo.texture = [SKTexture textureWithImageNamed:@"HaloBomb"];
+        halo.userData = [NSMutableDictionary dictionaryWithDictionary:@{@"Bomb":@YES}];
     }
     
     [_mainLayer addChild:halo];
@@ -340,6 +343,26 @@ static inline CGFloat randomInRange(CGFloat low, CGFloat high) {
     
     [explosion runAction:removeExplosion];
     
+}
+
+- (void)destroyAllHalos
+{
+    [_mainLayer enumerateChildNodesWithName:@"halo" usingBlock:^(SKNode *node, BOOL *stop) {
+        [self addExplosion:node.position name:@"HaloExplosion"];
+        [self runAction:_explosionSound];
+        [node removeFromParent];
+        self.score += self.multiplier;
+    }];
+}
+
+- (void)destroyAllShields
+{
+    [_mainLayer enumerateChildNodesWithName:@"shield" usingBlock:^(SKNode *node, BOOL *stop) {
+        [self addExplosion:node.position name:@"HaloExplosion"];
+        [self runAction:_explosionSound];
+        [node removeFromParent];
+        self.score += self.multiplier;
+    }];
 }
 
 #pragma mark SKPhysicsContactDelegate
@@ -371,6 +394,10 @@ static inline CGFloat randomInRange(CGFloat low, CGFloat high) {
             self.multiplier++;
         }
         
+        if ([[firstBody.node.userData valueForKey:@"Bomb"] boolValue]) {
+            [self destroyAllHalos];
+        }
+        
         // Disable ball so it only hits once
         secondBody.categoryBitMask = 0;
     }
@@ -381,6 +408,10 @@ static inline CGFloat randomInRange(CGFloat low, CGFloat high) {
         [self runAction:_explosionSound];
         [firstBody.node removeFromParent];
         [secondBody.node removeFromParent];
+        
+        if ([[firstBody.node.userData valueForKey:@"Bomb"] boolValue]) {
+            [self destroyAllShields];
+        }
         
         // Disable halo so it only hits once
         firstBody.categoryBitMask = 0;
