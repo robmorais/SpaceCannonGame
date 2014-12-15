@@ -8,6 +8,7 @@
 
 #import "MainScene.h"
 #import "SCMenu.h"
+#import "SCBall.h"
 
 static const CGFloat SHOOT_SPEED = 1000.0;
 static const CGFloat kSCHaloLowAngle = 200.0 * M_PI/180.0;
@@ -26,6 +27,7 @@ static const uint32_t kSCLifeBarCategory = 0x1 << 4;
 @interface MainScene()
 @property (nonatomic) int ammo;
 @property (nonatomic) int score;
+@property (nonatomic) int multiplier;
 @end
 
 @implementation MainScene
@@ -35,6 +37,7 @@ static const uint32_t kSCLifeBarCategory = 0x1 << 4;
     SKSpriteNode *_cannon;
     SKSpriteNode *_ammoDisplay;
     SKLabelNode *_scoreLabel;
+    SKLabelNode *_multiplierLabel;
     BOOL _shoot;
     SKAction *_bounceSound;
     SKAction *_deepExplosionSound;
@@ -104,7 +107,7 @@ static inline CGFloat randomInRange(CGFloat low, CGFloat high) {
         SKAction *spawnHalo = [SKAction sequence:@[[SKAction waitForDuration:2 withRange:1],
                                                    [SKAction performSelector:@selector(spawnHalo) onTarget:self]]];
         
-        [self runAction:[SKAction repeatActionForever:spawnHalo]];
+        [self runAction:[SKAction repeatActionForever:spawnHalo] withKey:@"SpawnHalo"];
         
         // Setup Ammo
         _ammoDisplay = [SKSpriteNode spriteNodeWithImageNamed:@"Ammo5"];
@@ -127,6 +130,14 @@ static inline CGFloat randomInRange(CGFloat low, CGFloat high) {
         
         [self addChild:_scoreLabel];
         
+        // Multiplier Label
+        _multiplierLabel = [SKLabelNode labelNodeWithFontNamed:@"DIN Alternate"];
+        _multiplierLabel.position = CGPointMake(15, 30);
+        _multiplierLabel.horizontalAlignmentMode = SKLabelHorizontalAlignmentModeLeft;
+        _multiplierLabel.fontSize = 15.0;
+        
+        [self addChild:_multiplierLabel];
+        
         // Setup sounds
         [self setupSounds];
         
@@ -140,7 +151,9 @@ static inline CGFloat randomInRange(CGFloat low, CGFloat high) {
         _gameOver = YES;
         self.ammo = 5;
         self.score = 0;
+        self.multiplier = 1;
         _scoreLabel.hidden = YES;
+        _multiplierLabel.hidden = YES;
         
         // User Defaults
         _userDefaults = [NSUserDefaults standardUserDefaults];
@@ -183,13 +196,6 @@ static inline CGFloat randomInRange(CGFloat low, CGFloat high) {
 {
     [_mainLayer removeAllChildren];
     
-    // Starting ammo
-    self.ammo = 5;
-    
-    // Starting score
-    self.score = 0;
-    _scoreLabel.hidden = NO;
-    
     // Setup shield
     for (int i=0; i < 6; i++) {
         SKSpriteNode *shield = [SKSpriteNode spriteNodeWithImageNamed:@"Block"];
@@ -210,8 +216,15 @@ static inline CGFloat randomInRange(CGFloat low, CGFloat high) {
     
     [_mainLayer addChild:lifeBar];
     
+    // Initial values
+    self.ammo = 5;
+    self.score = 0;
+    self.multiplier = 1;
+    _scoreLabel.hidden = NO;
+    _multiplierLabel.hidden = NO;
     _menu.hidden = YES;
     _gameOver = NO;
+    [self actionForKey:@"SpawnHalo"].speed = 1.0;
 }
 
 - (void)gameOver
@@ -241,6 +254,7 @@ static inline CGFloat randomInRange(CGFloat low, CGFloat high) {
     
     _menu.hidden = NO;
     _scoreLabel.hidden = YES;
+    _multiplierLabel.hidden = YES;
     _gameOver = YES;
 }
 
@@ -248,7 +262,7 @@ static inline CGFloat randomInRange(CGFloat low, CGFloat high) {
 {
     if (self.ammo > 0) {
         self.ammo--;
-        SKSpriteNode *ball = [SKSpriteNode spriteNodeWithImageNamed:@"Ball"];
+        SCBall *ball = [SCBall spriteNodeWithImageNamed:@"Ball"];
         ball.name = @"ball";
         
         CGVector rotationVector = radiansToVector(_cannon.zRotation);
@@ -267,11 +281,26 @@ static inline CGFloat randomInRange(CGFloat low, CGFloat high) {
         ball.physicsBody.friction = 0.0;
         
         [self runAction:_laserSound];
+        
+        // Create trail
+        NSString *trailEmitterPath = [[NSBundle mainBundle] pathForResource:@"BallTrail" ofType:@"sks"];
+        SKEmitterNode *ballTrail = [NSKeyedUnarchiver unarchiveObjectWithFile:trailEmitterPath];
+        ballTrail.targetNode = _mainLayer;
+        [_mainLayer addChild:ballTrail];
+        ball.trail = ballTrail;
+        
     }
 }
 
 - (void)spawnHalo
 {
+    // Increase speed
+    SKAction *spawnAction = [self actionForKey:@"SpawnHalo"];
+    
+    if (spawnAction.speed < 1.5) {
+        spawnAction.speed += 0.01;
+    }
+    
     SKSpriteNode *halo = [SKSpriteNode spriteNodeWithImageNamed:@"Halo"];
     halo.name = @"halo";
     halo.position = CGPointMake(randomInRange(halo.size.width * 0.5, self.size.width - (halo.size.width * 0.5)), self.size.height + (halo.size.height * 0.5));
@@ -285,6 +314,13 @@ static inline CGFloat randomInRange(CGFloat low, CGFloat high) {
     halo.physicsBody.categoryBitMask = kSCHaloCategory;
     halo.physicsBody.collisionBitMask = kSCEdgeCategory;
     halo.physicsBody.contactTestBitMask = kSCBallCategory | kSCShieldCategory | kSCLifeBarCategory | kSCEdgeCategory;
+    
+    // Random multiplier
+    
+    if (!_gameOver && arc4random_uniform(6) == 0) {
+        halo.texture = [SKTexture textureWithImageNamed:@"HaloX"];
+        halo.userData = [NSMutableDictionary dictionaryWithDictionary:@{@"Multiplier":@YES}];
+    }
     
     [_mainLayer addChild:halo];
     
@@ -329,7 +365,11 @@ static inline CGFloat randomInRange(CGFloat low, CGFloat high) {
         [firstBody.node removeFromParent];
         [secondBody.node removeFromParent];
         
-        self.score += 1;
+        self.score += self.multiplier;
+        
+        if ([[firstBody.node.userData valueForKey:@"Multiplier"] boolValue]) {
+            self.multiplier++;
+        }
         
         // Disable ball so it only hits once
         secondBody.categoryBitMask = 0;
@@ -356,11 +396,21 @@ static inline CGFloat randomInRange(CGFloat low, CGFloat high) {
     
     if ((firstBody.categoryBitMask == kSCHaloCategory && secondBody.categoryBitMask == kSCEdgeCategory)) {
         // Halo bounces
-        [self runAction:_zapSound];
+        if (!_gameOver) {
+            [self runAction:_zapSound];
+        }
     }
     
     if ((firstBody.categoryBitMask == kSCBallCategory && secondBody.categoryBitMask == kSCEdgeCategory)) {
         // balls bounces on the edges
+        if ([firstBody.node isKindOfClass:[SCBall class]]) {
+            ((SCBall *)firstBody.node).bounces++;
+            if (((SCBall *)firstBody.node).bounces > 3) {
+                [firstBody.node removeFromParent];
+                self.multiplier = 1;
+            }
+        }
+        
         [self addExplosion:contact.contactPoint name:@"BounceExplosion"];
         [self runAction:_bounceSound];
     }
@@ -383,14 +433,25 @@ static inline CGFloat randomInRange(CGFloat low, CGFloat high) {
     _scoreLabel.text = [NSString stringWithFormat:@"Score: %d",score];
 }
 
+- (void)setMultiplier:(int)multiplier
+{
+    _multiplier = multiplier;
+    _multiplierLabel.text = [NSString stringWithFormat:@"Multiplier: x%d",multiplier];
+}
+
 #pragma mark Life Cycle
 
 - (void)didSimulatePhysics
 {
     [_mainLayer enumerateChildNodesWithName:@"ball" usingBlock:^(SKNode *node, BOOL *stop) {
+        if ([node respondsToSelector:@selector(updateTrail)]) {
+            [node performSelector:@selector(updateTrail) withObject:nil];
+        }
         if (!CGRectContainsPoint(self.frame, node.position)) {
             [node removeFromParent];
+            self.multiplier = 1;
         }
+        
     }];
     
     [_mainLayer enumerateChildNodesWithName:@"halo" usingBlock:^(SKNode *node, BOOL *stop) {

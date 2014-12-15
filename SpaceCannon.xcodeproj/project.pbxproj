@@ -26,6 +26,8 @@
 		A5C7DA761A38559A00A8FD24 /* Laser.caf in Resources */ = {isa = PBXBuildFile; fileRef = A5C7DA711A38559A00A8FD24 /* Laser.caf */; };
 		A5C7DA771A38559A00A8FD24 /* Zap.caf in Resources */ = {isa = PBXBuildFile; fileRef = A5C7DA721A38559A00A8FD24 /* Zap.caf */; };
 		A5C7DA7A1A385A7700A8FD24 /* SCMenu.m in Sources */ = {isa = PBXBuildFile; fileRef = A5C7DA791A385A7700A8FD24 /* SCMenu.m */; };
+		A5F95B0A1A3AFDDD00728C50 /* BallTrail.sks in Resources */ = {isa = PBXBuildFile; fileRef = A5F95B091A3AFDDD00728C50 /* BallTrail.sks */; };
+		A5F95B0D1A3B087300728C50 /* SCBall.m in Sources */ = {isa = PBXBuildFile; fileRef = A5F95B0C1A3B087300728C50 /* SCBall.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -66,6 +68,9 @@
 		A5C7DA721A38559A00A8FD24 /* Zap.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Zap.caf; sourceTree = "<group>"; };
 		A5C7DA781A385A7700A8FD24 /* SCMenu.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SCMenu.h; sourceTree = "<group>"; };
 		A5C7DA791A385A7700A8FD24 /* SCMenu.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SCMenu.m; sourceTree = "<group>"; };
+		A5F95B091A3AFDDD00728C50 /* BallTrail.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = BallTrail.sks; sourceTree = "<group>"; };
+		A5F95B0B1A3B087300728C50 /* SCBall.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SCBall.h; sourceTree = "<group>"; };
+		A5F95B0C1A3B087300728C50 /* SCBall.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SCBall.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -120,6 +125,8 @@
 				A5AE5FD31A23AB1E00B7FA52 /* MainScene.m */,
 				A5C7DA781A385A7700A8FD24 /* SCMenu.h */,
 				A5C7DA791A385A7700A8FD24 /* SCMenu.m */,
+				A5F95B0B1A3B087300728C50 /* SCBall.h */,
+				A5F95B0C1A3B087300728C50 /* SCBall.m */,
 			);
 			path = SpaceCannon;
 			sourceTree = "<group>";
@@ -159,6 +166,7 @@
 				A542D68A1A2FA5540061D08E /* halo.png */,
 				A542D68C1A30703A0061D08E /* LifeBarExplosion.sks */,
 				A52309381A31ED6D009B193D /* BounceExplosion.sks */,
+				A5F95B091A3AFDDD00728C50 /* BallTrail.sks */,
 			);
 			name = Assets;
 			sourceTree = "<group>";
@@ -266,6 +274,7 @@
 				A5C7DA751A38559A00A8FD24 /* Explosion.caf in Resources */,
 				A5C7DA771A38559A00A8FD24 /* Zap.caf in Resources */,
 				A542D68B1A2FA5540061D08E /* halo.png in Resources */,
+				A5F95B0A1A3AFDDD00728C50 /* BallTrail.sks in Resources */,
 				A52309391A31ED6D009B193D /* BounceExplosion.sks in Resources */,
 				A5C7DA731A38559A00A8FD24 /* Bounce.caf in Resources */,
 			);
@@ -287,6 +296,7 @@
 			files = (
 				A5AE5FB01A238C9100B7FA52 /* AppDelegate.m in Sources */,
 				A5AE5FD41A23AB1E00B7FA52 /* MainScene.m in Sources */,
+				A5F95B0D1A3B087300728C50 /* SCBall.m in Sources */,
 				A5C7DA7A1A385A7700A8FD24 /* SCMenu.m in Sources */,
 				A5AE5FB51A238C9100B7FA52 /* GameViewController.m in Sources */,
 				A5AE5FAD1A238C9100B7FA52 /* main.m in Sources */,
